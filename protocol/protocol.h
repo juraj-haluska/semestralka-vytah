@@ -4,8 +4,13 @@
 #include "mbed.h"
 #include "packet.h"
 #include <queue>
+#include <vector>
 
 #define START_BYTE  0xA0
+
+const uint8_t ACK[] = {
+  START_BYTE, 0x00, 0x00, 0x00, 0x00
+};
 
 const unsigned char CRC8_TAB[] = {
   0, 94, 188, 226, 97, 63, 221, 131, 194, 156, 126, 32, 163, 253, 31, 65,
@@ -32,6 +37,7 @@ private:
   uint8_t addr;
   void (*callback) (const Packet * packet);
   std::queue<Packet *> packetQueue;
+  std::vector<uint8_t> byteBuffer;
   // private functions
 public:
   Protocol( Serial& _serial, uint8_t _addr, void (*_callback) (const Packet * packet)):
