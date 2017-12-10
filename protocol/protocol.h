@@ -6,7 +6,6 @@
 #include <queue>
 
 #define START_BYTE  0xA0
-#define ADDRESS     0x00
 
 const unsigned char CRC8_TAB[] = {
   0, 94, 188, 226, 97, 63, 221, 131, 194, 156, 126, 32, 163, 253, 31, 65,
@@ -29,15 +28,18 @@ const unsigned char CRC8_TAB[] = {
 
 class Protocol {
 private:
-  RawSerial& serial;
+  Serial& serial;
   uint8_t addr;
   void (*callback) (const Packet * packet);
   std::queue<Packet *> packetQueue;
   // private functions
 public:
-  Protocol( RawSerial& _serial, uint8_t _addr, void (*_callback) (const Packet * packet));
+  Protocol( Serial& _serial, uint8_t _addr, void (*_callback) (const Packet * packet)):
+  serial(_serial),
+  addr(_addr),
+  callback(_callback) { };
   void sendDataTo(const Packet * packet);
-  void onByteReceived();
+  void onReceived();
 };
 
 #endif /* PROTOCOL_H_ */
