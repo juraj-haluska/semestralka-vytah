@@ -1,4 +1,3 @@
-mbed compile
 bin=./BUILD/KL25Z/GCC_ARM/semestralka-vytah.bin
 dir=/tmp/mbed_device
 mkdir $dir

@@ -4,7 +4,7 @@
 extern Serial help;
 
 void Protocol::onReceived() {
-  help.printf("on received called\r\n");
+  //help.printf("on received called\r\n");
 
   // first byte in buffer must by START_BYTE
   if (byteBuffer.size() >= 1 && byteBuffer[0] != START_BYTE) {
@@ -12,7 +12,7 @@ void Protocol::onReceived() {
   }
   
   uint8_t received = serial.getc();
-  help.printf("byte received: %x\r\n", received);
+  //help.printf("byte received: %x\r\n", received);
 
   // add received byte to buffer
   byteBuffer.push_back(received);
