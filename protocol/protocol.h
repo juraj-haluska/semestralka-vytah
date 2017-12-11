@@ -13,6 +13,8 @@
 #define PACKET_TA_POS   3
 #define PACKET_DL_POS   4
 
+#define ACK_TIMEOUT     0.1
+
 const uint8_t ACK[] = {
   START_BYTE, 0x00, 0x00, 0x00, 0x00
 };
@@ -40,21 +42,19 @@ class Protocol {
 private:
   Serial& serial;
   uint8_t addr;
-  void (*callback) (Packet * packet);
+  void (*clbk) (Packet * packet);
   std::queue<Packet *> packetQueue;
   std::vector<uint8_t> byteBuffer;
   uint8_t crc;
+  Timeout ackTimeout;
+  
   // private functions
   void newPacket();
-public:
-  Protocol( Serial& _serial, uint8_t _addr, void (*_callback) (Packet * packet)):
-  serial(_serial),
-  addr(_addr),
-  callback(_callback) {
-    this->newPacket();
-  };
-  void sendPacket(Packet * packet);
+  void onAckTimeout();
   void onByteReceived();
+public:
+  Protocol( Serial& _serial, uint8_t _addr, void (*_callback) (Packet * packet));
+  void queuePacket(Packet * packet);
 };
 
 #endif /* PROTOCOL_H_ */

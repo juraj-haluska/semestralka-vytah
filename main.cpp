@@ -46,14 +46,9 @@ void sendPacket(unsigned char recAddr, unsigned char * data, unsigned char lengt
     pc.putc(crc);
 }
 
-void onReceived() {
-    protocol.onByteReceived();
-}
-
 int main()
 {
     help.printf("debuging works\r\n");
-    pc.attach(&onReceived, Serial::RxIrq);
 
     unsigned char data [] = {0x41,0x42, 0x43, '\n'};
 

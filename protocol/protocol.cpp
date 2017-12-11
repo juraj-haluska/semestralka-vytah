@@ -3,6 +3,14 @@
 
 extern Serial help;
 
+Protocol::Protocol( Serial& _serial, uint8_t _addr, void (*_callback) (Packet * packet)):
+serial(_serial),
+addr(_addr),
+clbk(_callback) {
+  this->newPacket();
+  serial.attach(callback(this, &Protocol::onByteReceived), Serial::RxIrq);
+};
+
 void Protocol::newPacket() {
   crc = 0;
   byteBuffer.clear();
@@ -63,10 +71,14 @@ void Protocol::onByteReceived() {
         }
 
         newPacket();
-        callback(received);
+        clbk(received);
       } else {
         newPacket();
       }
     }
   }
+}
+
+void Protocol::queuePacket(Packet * packet) {
+  packetQueue.push(packet);
 }
