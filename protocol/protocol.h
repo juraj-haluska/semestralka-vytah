@@ -6,7 +6,12 @@
 #include <queue>
 #include <vector>
 
-#define START_BYTE  0xA0
+#define START_BYTE      0xA0
+/* position of fileds in packet counting from 1 */
+#define PACKET_SB_POS   1
+#define PACKET_RA_POS   2
+#define PACKET_TA_POS   3
+#define PACKET_DL_POS   4
 
 const uint8_t ACK[] = {
   START_BYTE, 0x00, 0x00, 0x00, 0x00
