@@ -43,12 +43,16 @@ private:
   void (*callback) (const Packet * packet);
   std::queue<Packet *> packetQueue;
   std::vector<uint8_t> byteBuffer;
+  uint8_t crc;
   // private functions
+  void newPacket();
 public:
   Protocol( Serial& _serial, uint8_t _addr, void (*_callback) (const Packet * packet)):
   serial(_serial),
   addr(_addr),
-  callback(_callback) { };
+  callback(_callback) {
+    this->newPacket();
+  };
   void sendDataTo(const Packet * packet);
   void onReceived();
 };
