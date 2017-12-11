@@ -6,13 +6,13 @@
 
 class Packet {
 private:
-  uint8_t recvAddr;
+  uint8_t peerAddr;
   std::vector<uint8_t> data; 
 public:
-  Packet(uint8_t _recvAddr): recvAddr(_recvAddr) { }
+  Packet(uint8_t _peerAddr): peerAddr(_peerAddr) { }
   void addByte(uint8_t byte);
-  uint8_t getRecvAddr();
-  std::vector<uint8_t> const& getData(); 
+  uint8_t getPeerAddr();
+  std::vector<uint8_t> &getData(); 
 };
 
 #endif /* PACKET_H_ */

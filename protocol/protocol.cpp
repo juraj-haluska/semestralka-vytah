@@ -8,7 +8,7 @@ void Protocol::newPacket() {
   byteBuffer.clear();
 }
 
-void Protocol::onReceived() {
+void Protocol::onByteReceived() {
   // first byte in buffer must by START_BYTE
   if (byteBuffer.size() >= PACKET_SB_POS && byteBuffer[PACKET_SB_POS - 1] != START_BYTE) {
     newPacket();
@@ -28,7 +28,7 @@ void Protocol::onReceived() {
     if (match == byteBuffer.size()) {
       // ack received
       newPacket();
-      callback(NULL);
+      help.printf("ack\r\n");
       return;
     }
   }
@@ -54,12 +54,19 @@ void Protocol::onReceived() {
 
     // data complete (+1 for crc byte)
     if (actualDataLength >= (expectedDataLength + 1)) {
-      uint8_t tcrc = crc;
-      uint8_t rcrc = byteBuffer.back();
-      newPacket();
-      help.printf("data received:%x:%x\r\n",tcrc, rcrc);
-    }
+      // check crc
+      if (crc == byteBuffer.back()) {
+        Packet * received = new Packet(byteBuffer[PACKET_TA_POS - 1]);
+        // copy data
+        for (int i = 0; i < expectedDataLength; i++) {
+          received->addByte(byteBuffer[PACKET_DL_POS + i]);
+        }
 
-    return;
+        newPacket();
+        callback(received);
+      } else {
+        newPacket();
+      }
+    }
   }
 }

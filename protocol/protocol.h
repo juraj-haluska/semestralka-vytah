@@ -7,7 +7,7 @@
 #include <vector>
 
 #define START_BYTE      0xA0
-/* position of fileds in packet counting from 1 */
+/* positions of fileds in packet counting from 1 */
 #define PACKET_SB_POS   1
 #define PACKET_RA_POS   2
 #define PACKET_TA_POS   3
@@ -40,21 +40,21 @@ class Protocol {
 private:
   Serial& serial;
   uint8_t addr;
-  void (*callback) (const Packet * packet);
+  void (*callback) (Packet * packet);
   std::queue<Packet *> packetQueue;
   std::vector<uint8_t> byteBuffer;
   uint8_t crc;
   // private functions
   void newPacket();
 public:
-  Protocol( Serial& _serial, uint8_t _addr, void (*_callback) (const Packet * packet)):
+  Protocol( Serial& _serial, uint8_t _addr, void (*_callback) (Packet * packet)):
   serial(_serial),
   addr(_addr),
   callback(_callback) {
     this->newPacket();
   };
-  void sendDataTo(const Packet * packet);
-  void onReceived();
+  void sendPacket(Packet * packet);
+  void onByteReceived();
 };
 
 #endif /* PROTOCOL_H_ */
