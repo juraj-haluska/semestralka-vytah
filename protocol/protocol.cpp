@@ -3,75 +3,82 @@
 
 extern Serial help;
 
-Protocol::Protocol( Serial& _serial, uint8_t _addr, void (*_callback) (Packet * packet)):
+Thread sender_th;
+
+Protocol::Protocol(Serial& _serial, uint8_t _myAddr):
 serial(_serial),
-addr(_addr),
-clbk(_callback) {
+myAddr(_myAddr) {
   this->newPacket();
   serial.attach(callback(this, &Protocol::onByteReceived), Serial::RxIrq);
+  sender_th.start(callback(this, &Protocol::senderTh));
 };
 
 void Protocol::newPacket() {
   crc = 0;
-  byteBuffer.clear();
+  for (int i = 0; i < MAX_DATA_LENGTH; i++) {
+    recvBuffer[i] = ZERO;
+  }
+  dataLength = 0;
 }
 
 void Protocol::onByteReceived() {
   // first byte in buffer must by START_BYTE
-  if (byteBuffer.size() >= PACKET_SB_POS && byteBuffer[PACKET_SB_POS - 1] != START_BYTE) {
+  if (dataLength >= PACKET_SB_POS && recvBuffer[PACKET_SB_POS - 1] != START_BYTE) {
     newPacket();
   }
   
   // add received byte to buffer
-  byteBuffer.push_back(serial.getc());
+  recvBuffer[dataLength++] = serial.getc();
 
   // check if ACK was received
-  if (byteBuffer.size() == sizeof(ACK)) {
+  if (dataLength == sizeof(ACK)) {
     uint8_t match = 0;
-    for (uint8_t i = 0; i < byteBuffer.size(); i++) {
-      if (byteBuffer[i] == ACK[i]) {
+    for (uint8_t i = 0; i < dataLength; i++) {
+      if (recvBuffer[i] == ACK[i]) {
         match++;
       }
     }
-    if (match == byteBuffer.size()) {
+    if (match == dataLength) {
       // ack received
       newPacket();
-      help.printf("ack\r\n");
+      event.set(EVENT_ACK);
       return;
     }
   }
 
   // calculate crc if address's present
-  if (byteBuffer.size() == PACKET_RA_POS) {
-    crc = CRC8_TAB[crc ^ byteBuffer[PACKET_RA_POS - 1]];
+  if (dataLength == PACKET_RA_POS) {
+    crc = CRC8_TAB[crc ^ recvBuffer[PACKET_RA_POS - 1]];
   }
 
-  if (byteBuffer.size() == PACKET_TA_POS) {
-    crc = CRC8_TAB[crc ^ byteBuffer[PACKET_TA_POS - 1]];
+  if (dataLength == PACKET_TA_POS) {
+    crc = CRC8_TAB[crc ^ recvBuffer[PACKET_TA_POS - 1]];
   }
 
   // check if length byte is in the buffer
-  if (byteBuffer.size() >= PACKET_DL_POS) {
-    uint8_t expectedDataLength = byteBuffer[PACKET_DL_POS - 1];
-    int actualDataLength = byteBuffer.size() - PACKET_DL_POS;
+  if (dataLength >= PACKET_DL_POS) {
+    uint8_t expectedDataLength = recvBuffer[PACKET_DL_POS - 1];
+    int actualDataLength = dataLength - PACKET_DL_POS;
 
     // calculate crc of data
-    if ((byteBuffer.size() > PACKET_DL_POS) && (actualDataLength <= expectedDataLength)) {
-      crc = CRC8_TAB[crc ^ byteBuffer.back()];
+    if ((dataLength > PACKET_DL_POS) && (actualDataLength <= expectedDataLength)) {
+      crc = CRC8_TAB[crc ^ recvBuffer[dataLength - 1]];
     }
 
     // data complete (+1 for crc byte)
     if (actualDataLength >= (expectedDataLength + 1)) {
       // check crc
-      if (crc == byteBuffer.back()) {
-        Packet * received = new Packet(byteBuffer[PACKET_TA_POS - 1]);
-        // copy data
+      if (crc == recvBuffer[dataLength - 1]) {
+        // allocate new packet, copy data and add to queue
+        packet_t *packet = inMailbox.alloc();
+        packet->peerAddr = recvBuffer[PACKET_TA_POS - 1];
         for (int i = 0; i < expectedDataLength; i++) {
-          received->addByte(byteBuffer[PACKET_DL_POS + i]);
+          packet->data[i] = recvBuffer[PACKET_DL_POS + i];
         }
+        packet->dataLength = expectedDataLength;
+        inMailbox.put(packet);
 
         newPacket();
-        clbk(received);
       } else {
         newPacket();
       }
@@ -79,6 +86,77 @@ void Protocol::onByteReceived() {
   }
 }
 
-void Protocol::queuePacket(Packet * packet) {
-  packetQueue.push(packet);
+Mail<packet_t, IN_QUEUE_SIZE> & Protocol::getInMailbox() {
+  return inMailbox;
+}
+
+Mail<packet_t, OUT_QUEUE_SIZE> & Protocol::getOutMailbox() {
+  return outMailbox;
+}
+
+//void Protocol::sendPacket() {
+  // if (packetQueue.size() <= 0) return;
+  // help.printf("q:%d\r\n", packetQueue.size());
+  
+  // Packet * packet = packetQueue.front();
+  
+  // uint8_t s_crc = 0; 
+  // s_crc = CRC8_TAB[s_crc ^ packet->getPeerAddr()];
+  // s_crc = CRC8_TAB[s_crc ^ addr];
+
+  // // send "header"
+  // serial.putc(START_BYTE);
+  // serial.putc(packet->getPeerAddr()); 
+  // serial.putc(addr); 
+  // serial.putc(packet->getData().size());
+      
+  // // send data and compute crc
+  // for (unsigned int i = 0; i < packet->getData().size(); i++) {
+  //   s_crc = CRC8_TAB[s_crc ^ packet->getData()[i]];
+  //   serial.putc(packet->getData()[i]);
+  // }
+    
+  // // send crc
+  // serial.putc(s_crc);
+
+  // // start ACK timeout
+  // ackTimeout.attach(callback(this, &Protocol::sendPacket), ACK_TIMEOUT);
+//}
+
+void Protocol::senderTh() {
+  osEvent evt = outMailbox.get();
+  if (evt.status == osEventMail) {
+    packet_t *packet = (packet_t*)evt.value.p;
+    
+    uint8_t s_crc = 0; 
+
+    // compute crc of addresses
+    s_crc = CRC8_TAB[s_crc ^ packet->peerAddr];
+    s_crc = CRC8_TAB[s_crc ^ myAddr];
+
+    // send header
+    serial.putc(START_BYTE);
+    serial.putc(packet->peerAddr); 
+    serial.putc(myAddr); 
+    serial.putc(packet->dataLength);
+    
+    // send data and compute crc
+    for (int i = 0; i < packet->dataLength; i++) {
+      s_crc = CRC8_TAB[s_crc ^ packet->data[i]];
+      serial.putc(packet->data[i]);
+    }
+
+    // send crc
+    serial.putc(s_crc);
+
+    // wait for ack event
+    uint32_t flag = event.wait_all(EVENT_ACK, ACK_TIMEOUT);
+    if (flag == osFlagsError) {
+      help.printf("error\r\n");
+    } else {
+      help.printf("flag ok\r\n");
+    }
+
+    outMailbox.free(packet);
+  }
 }

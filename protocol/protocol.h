@@ -2,7 +2,6 @@
 #define PROTOCOL_H_
 
 #include "mbed.h"
-#include "packet.h"
 #include <queue>
 #include <vector>
 
@@ -13,7 +12,15 @@
 #define PACKET_TA_POS   3
 #define PACKET_DL_POS   4
 
+#define MAX_DATA_LENGTH 100
+#define ZERO 0x00
+
 #define ACK_TIMEOUT     0.1
+
+#define IN_QUEUE_SIZE   1
+#define OUT_QUEUE_SIZE  1
+
+#define EVENT_ACK       0x01
 
 const uint8_t ACK[] = {
   START_BYTE, 0x00, 0x00, 0x00, 0x00
@@ -38,23 +45,34 @@ const unsigned char CRC8_TAB[] = {
   116, 42, 200, 150, 21, 75, 169, 247, 182, 232, 10, 84, 215, 137, 107, 53    
 };
 
+typedef struct {
+  uint8_t peerAddr;
+  uint8_t dataLength;
+  uint8_t data[MAX_DATA_LENGTH];
+} packet_t;
+
 class Protocol {
 private:
   Serial& serial;
-  uint8_t addr;
-  void (*clbk) (Packet * packet);
-  std::queue<Packet *> packetQueue;
-  std::vector<uint8_t> byteBuffer;
+  EventFlags event;
+  uint8_t myAddr;
+
+  uint8_t dataLength;
+  uint8_t recvBuffer[MAX_DATA_LENGTH];
   uint8_t crc;
-  Timeout ackTimeout;
+
+  // packet mailboxes
+  Mail<packet_t, IN_QUEUE_SIZE> inMailbox;
+  Mail<packet_t, OUT_QUEUE_SIZE> outMailbox;
   
   // private functions
+  void senderTh();
   void newPacket();
-  void onAckTimeout();
   void onByteReceived();
 public:
-  Protocol( Serial& _serial, uint8_t _addr, void (*_callback) (Packet * packet));
-  void queuePacket(Packet * packet);
+  Protocol(Serial& _serial, uint8_t _myAddr);
+  Mail<packet_t, IN_QUEUE_SIZE> &getInMailbox();
+  Mail<packet_t, OUT_QUEUE_SIZE> &getOutMailbox();
 };
 
 #endif /* PROTOCOL_H_ */
