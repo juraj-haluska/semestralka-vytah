@@ -3,6 +3,7 @@
 #include "display.h"
 #include "ledpanel.h"
 #include "cabin.h"
+#include "engine.h"
 
 #define BAUDRATE    57600
 #define MY_ADDR     0x00
@@ -14,35 +15,30 @@ Serial pc(USBTX, USBRX, BAUDRATE);
 Protocol protocol(pc, MY_ADDR);
 
 Display display(0x30, &protocol);  
-LedPanel panel1(0x20, &protocol);
-Cabin cabin(0xF0, 0x0F, &protocol);
+//LedPanel panel1(0x20, &protocol);
+//Cabin cabin(0xF0, 0x0F, &protocol);
+//Engine engine(0xF1, &protocol);
 
 int main()
 {
   help.printf("debuging works\r\n");
-  
   protocol.start();
-        
-  int led = 0;
-  bool lock = false;  
+    
     
   while (true) {
-    cabin.activateBreak();
-    panel1.setLed(led);
-    wait(0.5f);
-    if (lock) {
-        cabin.lock();    
-    } else {
-        cabin.unlock();    
-    }
-    lock = !lock;
-wait(0.5f);
-    panel1.unsetLed(led++);
-    cabin.deactivateBreak();
-    wait(0.5f);
-    if (led > 5) led = 0;
-
-//        help.printf("waiting...\r\n");
+    display.setDirectionUp(4);
+    wait(0.5);
+    display.setDirectionDown(5);
+    wait(0.5);
+    //cabin.lock();
+//    wait(1);
+//    engine.move(100);
+//    wait(5);
+//    cabin.lock();
+//    wait(1);
+//    engine.move(-100);
+//    wait(5);
+        //help.printf("waiting...\r\n");
 //        osEvent evt = protocol.getInMailbox().get();
 //        if (evt.status == osEventMail) {
 //            packet_t *packet = (packet_t*)evt.value.p;

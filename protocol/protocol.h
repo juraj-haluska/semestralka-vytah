@@ -10,12 +10,12 @@
 #define PACKET_TA_POS   3
 #define PACKET_DL_POS   4
 
-#define MAX_DATA_LENGTH 256
+#define MAX_DATA_LENGTH 10
 #define ZERO 0x00
 
-#define ACK_TIMEOUT     250     // miliseconds?
+#define ACK_TIMEOUT     250     // miliseconds
 
-#define IN_QUEUE_SIZE   2
+#define IN_QUEUE_SIZE   4
 #define OUT_QUEUE_SIZE  4
 
 #define EVENT_ACK       0x01

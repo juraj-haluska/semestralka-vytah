@@ -3,8 +3,8 @@
 
 #include "protocol.h"
 
-#define CABIN_LOCK      0x00
-#define CABIN_UNLOCK    0x01
+#define CABIN_LOCK      0x01
+#define CABIN_UNLOCK    0x00
 #define BREAK_UNLOCK    0x00
 #define BREAK_LOCK      0x01
 
