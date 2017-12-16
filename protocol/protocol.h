@@ -2,8 +2,6 @@
 #define PROTOCOL_H_
 
 #include "mbed.h"
-#include <queue>
-#include <vector>
 
 #define START_BYTE      0xA0
 /* positions of fileds in packet counting from 1 */
@@ -15,7 +13,7 @@
 #define MAX_DATA_LENGTH 256
 #define ZERO 0x00
 
-#define ACK_TIMEOUT     0.1
+#define ACK_TIMEOUT     250     // miliseconds?
 
 #define IN_QUEUE_SIZE   2
 #define OUT_QUEUE_SIZE  4

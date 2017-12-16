@@ -99,39 +99,44 @@ Mail<packet_t, OUT_QUEUE_SIZE> & Protocol::getOutMailbox() {
 
 void Protocol::senderTh() {
   while(true) {
+    help.printf("running\n");
     osEvent evt = outMailbox.get();
     if (evt.status == osEventMail) {
       packet_t *packet = (packet_t*)evt.value.p;
       
-      uint8_t s_crc = 0; 
-
-      // compute crc of addresses
-      s_crc = CRC8_TAB[s_crc ^ packet->peerAddr];
-      s_crc = CRC8_TAB[s_crc ^ myAddr];
-
-      // send header
-      serial.putc(START_BYTE);
-      serial.putc(packet->peerAddr); 
-      serial.putc(myAddr); 
-      serial.putc(packet->dataLength);
+      volatile uint32_t flag = 0x00;
       
-      // send data and compute crc
-      for (int i = 0; i < packet->dataLength; i++) {
-        s_crc = CRC8_TAB[s_crc ^ packet->data[i]];
-        serial.putc(packet->data[i]);
+      // packet transmission
+      while (flag != EVENT_ACK) {
+        uint8_t s_crc = 0; 
+
+        // compute crc of addresses
+        s_crc = CRC8_TAB[s_crc ^ packet->peerAddr];
+        s_crc = CRC8_TAB[s_crc ^ myAddr];
+
+        // send header
+        serial.putc(START_BYTE);
+        serial.putc(packet->peerAddr); 
+        serial.putc(myAddr); 
+        serial.putc(packet->dataLength);
+      
+        // send data and compute crc
+        for (int i = 0; i < packet->dataLength; i++) {
+          s_crc = CRC8_TAB[s_crc ^ packet->data[i]];
+          serial.putc(packet->data[i]);
+        }
+
+        // send crc
+        serial.putc(s_crc);
+
+        help.printf("waining for flag\r\n");
+
+        // wait for ack event
+        flag = event.wait_all(EVENT_ACK, ACK_TIMEOUT);
+        help.printf("\tflag: %d\r\n", flag);
       }
-
-      // send crc
-      serial.putc(s_crc);
-
-      // wait for ack event
-      uint32_t flag = event.wait_all(EVENT_ACK, ACK_TIMEOUT);
-      if (flag == osFlagsError) {
-        help.printf("error\r\n");
-      } else {
-        help.printf("flag ok\r\n");
-      }
-
+      
+      // packet successfuly sent
       outMailbox.free(packet);
     }
   }

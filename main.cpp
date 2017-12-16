@@ -16,26 +16,34 @@ int main()
 
     protocol.start();
     
+    char ch = 'a';
+    
     while (true) {
 
-        help.printf("waiting...\r\n");
-        osEvent evt = protocol.getInMailbox().get();
-        if (evt.status == osEventMail) {
-            packet_t *packet = (packet_t*)evt.value.p;
-            help.printf("packet\r\n");
-            protocol.getInMailbox().free(packet);
-        }
-        wait(1.0f);
+//        help.printf("waiting...\r\n");
+//        osEvent evt = protocol.getInMailbox().get();
+//        if (evt.status == osEventMail) {
+//            packet_t *packet = (packet_t*)evt.value.p;
+//            help.printf("packet\r\n");
+//            protocol.getInMailbox().free(packet);
+//        }
+        wait(0.8f);
 
         protocol.getOutMailbox();
         packet_t *packet = protocol.getOutMailbox().alloc();
         packet->peerAddr = 0xD0;
-        packet->data[0] = 0x41;
+        packet->data[0] = ch;
         packet->data[1] = '\n';
 
         packet->dataLength = 2;
 
         protocol.getOutMailbox().put(packet);
+        
+        if (ch < 'z') {
+            ch++;    
+        } else {
+            ch = 'a';
+        }
     }
 }
 
