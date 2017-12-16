@@ -15,7 +15,7 @@ Protocol protocol(pc, MY_ADDR);
 
 Display display(0x30, &protocol);  
 LedPanel panel1(0x20, &protocol);
-Cabin cabin(0xF0, &protocol);
+Cabin cabin(0xF0, 0x0F, &protocol);
 
 int main()
 {
@@ -27,6 +27,7 @@ int main()
   bool lock = false;  
     
   while (true) {
+    cabin.activateBreak();
     panel1.setLed(led);
     wait(0.5f);
     if (lock) {
@@ -37,6 +38,7 @@ int main()
     lock = !lock;
 wait(0.5f);
     panel1.unsetLed(led++);
+    cabin.deactivateBreak();
     wait(0.5f);
     if (led > 5) led = 0;
 
