@@ -15,9 +15,9 @@ Serial pc(USBTX, USBRX, BAUDRATE);
 Protocol protocol(pc, MY_ADDR);
 
 Display display(0x30, &protocol);  
-//LedPanel panel1(0x20, &protocol);
-//Cabin cabin(0xF0, 0x0F, &protocol);
-//Engine engine(0xF1, &protocol);
+LedPanel panel1(0x20, &protocol);
+Cabin cabin(0xF0, 0x0F, &protocol);
+Engine engine(0xF1, &protocol);
 
 int main()
 {

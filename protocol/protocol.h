@@ -10,13 +10,13 @@
 #define PACKET_TA_POS   3
 #define PACKET_DL_POS   4
 
-#define MAX_DATA_LENGTH 10
+#define MAX_DATA_LENGTH 256
 #define ZERO 0x00
 
 #define ACK_TIMEOUT     250     // miliseconds
 
-#define IN_QUEUE_SIZE   4
-#define OUT_QUEUE_SIZE  4
+#define IN_QUEUE_SIZE   2
+#define OUT_QUEUE_SIZE  32
 
 #define EVENT_ACK       0x01
 
@@ -46,7 +46,8 @@ const unsigned char CRC8_TAB[] = {
 typedef struct {
   uint8_t peerAddr;
   uint8_t dataLength;
-  uint8_t data[MAX_DATA_LENGTH];
+  uint8_t * data;
+  bool dynamic;
 } packet_t;
 
 class Protocol {
@@ -61,7 +62,7 @@ private:
 
   // packet mailboxes
   Mail<packet_t, IN_QUEUE_SIZE> inMailbox;
-  Mail<packet_t, OUT_QUEUE_SIZE> outMailbox;
+  Queue<packet_t, OUT_QUEUE_SIZE> outQueue;
   
   // private functions
   void senderTh();
@@ -70,7 +71,7 @@ private:
 public:
   Protocol(Serial& _serial, uint8_t _myAddr);
   Mail<packet_t, IN_QUEUE_SIZE> &getInMailbox();
-  Mail<packet_t, OUT_QUEUE_SIZE> &getOutMailbox();
+  Queue<packet_t, OUT_QUEUE_SIZE> &getOutQueue();
   void start();
 };
 

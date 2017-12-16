@@ -73,13 +73,13 @@ void Protocol::onByteReceived() {
       // check crc
       if (crc == recvBuffer[dataLength - 1]) {
         // allocate new packet, copy data and add to queue
-        packet_t *packet = inMailbox.alloc();
-        packet->peerAddr = recvBuffer[PACKET_TA_POS - 1];
-        for (int i = 0; i < expectedDataLength; i++) {
-          packet->data[i] = recvBuffer[PACKET_DL_POS + i];
-        }
-        packet->dataLength = expectedDataLength;
-        inMailbox.put(packet);
+//        packet_t *packet = inMailbox.alloc();
+//        packet->peerAddr = recvBuffer[PACKET_TA_POS - 1];
+//        for (int i = 0; i < expectedDataLength; i++) {
+//          packet->data[i] = recvBuffer[PACKET_DL_POS + i];
+//        }
+//        packet->dataLength = expectedDataLength;
+//        inMailbox.put(packet);
 
         newPacket();
       } else {
@@ -93,15 +93,15 @@ Mail<packet_t, IN_QUEUE_SIZE> & Protocol::getInMailbox() {
   return inMailbox;
 }
 
-Mail<packet_t, OUT_QUEUE_SIZE> & Protocol::getOutMailbox() {
-  return outMailbox;
+Queue<packet_t, OUT_QUEUE_SIZE> & Protocol::getOutQueue() {
+  return outQueue;
 }
 
 void Protocol::senderTh() {
   while(true) {
     help.printf("running\n");
-    osEvent evt = outMailbox.get();
-    if (evt.status == osEventMail) {
+    osEvent evt = outQueue.get();
+    if (evt.status == osEventMessage) {
       packet_t *packet = (packet_t*)evt.value.p;
       
       volatile uint32_t flag = 0x00;
@@ -137,7 +137,10 @@ void Protocol::senderTh() {
       }
       
       // packet successfuly sent
-      outMailbox.free(packet);
+      if (packet->dynamic) {
+        delete [] packet->data;
+        delete packet;    
+      }
     }
   }
 }
