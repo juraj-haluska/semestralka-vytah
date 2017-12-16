@@ -2,8 +2,6 @@
 #define PROTOCOL_H_
 
 #include "mbed.h"
-#include <queue>
-#include <vector>
 
 #define START_BYTE      0xA0
 /* positions of fileds in packet counting from 1 */
@@ -12,13 +10,13 @@
 #define PACKET_TA_POS   3
 #define PACKET_DL_POS   4
 
-#define MAX_DATA_LENGTH 100
-#define ZERO 0x00
+#define MAX_DATA_LENGTH 256
+#define ZERO            0x00
 
 #define ACK_TIMEOUT     0.1
 
-#define IN_QUEUE_SIZE   1
-#define OUT_QUEUE_SIZE  1
+#define IN_QUEUE_SIZE   5
+#define OUT_QUEUE_SIZE  5
 
 #define EVENT_ACK       0x01
 
@@ -48,7 +46,7 @@ const unsigned char CRC8_TAB[] = {
 typedef struct {
   uint8_t peerAddr;
   uint8_t dataLength;
-  uint8_t data[MAX_DATA_LENGTH];
+  uint8_t * data;
 } packet_t;
 
 class Protocol {
@@ -56,23 +54,22 @@ private:
   Serial& serial;
   EventFlags event;
   uint8_t myAddr;
-
   uint8_t dataLength;
   uint8_t recvBuffer[MAX_DATA_LENGTH];
   uint8_t crc;
 
   // packet mailboxes
-  Mail<packet_t, IN_QUEUE_SIZE> inMailbox;
-  Mail<packet_t, OUT_QUEUE_SIZE> outMailbox;
+  Queue<packet_t, IN_QUEUE_SIZE> inQueue;
+  Queue<packet_t, OUT_QUEUE_SIZE> outQueue;
   
   // private functions
-  void senderTh();
   void newPacket();
   void onByteReceived();
 public:
   Protocol(Serial& _serial, uint8_t _myAddr);
-  Mail<packet_t, IN_QUEUE_SIZE> &getInMailbox();
-  Mail<packet_t, OUT_QUEUE_SIZE> &getOutMailbox();
+  Queue<packet_t, IN_QUEUE_SIZE> &getInQueue();
+  Queue<packet_t, OUT_QUEUE_SIZE> &getOutQueue();
+  void senderTh();
 };
 
 #endif /* PROTOCOL_H_ */

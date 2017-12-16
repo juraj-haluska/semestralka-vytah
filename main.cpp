@@ -14,12 +14,24 @@ Serial help(PTC4, PTC3, 115200);
 //     delete packet;
 // }
 
-DigitalOut myled(LED_GREEN);
 Serial pc(USBTX, USBRX, BAUDRATE);
 Protocol protocol(pc, MY_ADDR);
 
+DigitalOut myled(LED_GREEN);
+//Thread debuger;
+Thread sender_th;
+
+void debuger_th(){
+    while(true) {
+        wait(0.5f);
+        myled = !myled; 
+    }
+}
+
 int main()
 {
+    //debuger.start(debuger_th);
+    sender_th.start(callback(&protocol, &Protocol::senderTh));
     help.printf("debuging works\r\n");
 
     //unsigned char data [] = {0x41,0x42, 0x43, '\n'};
@@ -27,23 +39,24 @@ int main()
     while (true) {
 
         help.printf("waiting...\r\n");
-        osEvent evt = protocol.getInMailbox().get();
-        if (evt.status == osEventMail) {
-            packet_t *packet = (packet_t*)evt.value.p;
-            help.printf("packet\r\n");
-            protocol.getInMailbox().free(packet);
-        }
-        wait(1.0f);
+         osEvent evt = protocol.getInQueue().get();
+         if (evt.status == osEventMessage) {
+             packet_t *packet = (packet_t*)evt.value.p;
+             help.printf("packet\r\n");
 
-        protocol.getOutMailbox();
-        packet_t *packet = protocol.getOutMailbox().alloc();
-        packet->peerAddr = 0xD0;
-        packet->data[0] = 0x41;
-        packet->data[1] = '\n';
+             delete [] packet->data;
+             delete packet;
+         }
+         wait(1.0f);
 
-        packet->dataLength = 2;
+         packet_t *packet = new packet_t;
+         packet->peerAddr = 0xD0;
+         packet->dataLength = 2;
+         packet->data = new uint8_t [packet->dataLength];
+         packet->data[0] = 0x41;
+         packet->data[1] = '\n';
 
-        protocol.getOutMailbox().put(packet);
+         protocol.getOutQueue().put(packet);
     }
 }
 

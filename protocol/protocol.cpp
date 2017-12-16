@@ -3,14 +3,14 @@
 
 extern Serial help;
 
-Thread sender_th;
+//extern Thread sender_th;
 
 Protocol::Protocol(Serial& _serial, uint8_t _myAddr):
 serial(_serial),
 myAddr(_myAddr) {
   this->newPacket();
   serial.attach(callback(this, &Protocol::onByteReceived), Serial::RxIrq);
-  sender_th.start(callback(this, &Protocol::senderTh));
+  //sender_th.start(callback(this, &Protocol::senderTh));
 };
 
 void Protocol::newPacket() {
@@ -70,13 +70,14 @@ void Protocol::onByteReceived() {
       // check crc
       if (crc == recvBuffer[dataLength - 1]) {
         // allocate new packet, copy data and add to queue
-        packet_t *packet = inMailbox.alloc();
+        packet_t *packet = new packet_t;
         packet->peerAddr = recvBuffer[PACKET_TA_POS - 1];
+        packet->data = new uint8_t [expectedDataLength];
         for (int i = 0; i < expectedDataLength; i++) {
           packet->data[i] = recvBuffer[PACKET_DL_POS + i];
         }
         packet->dataLength = expectedDataLength;
-        inMailbox.put(packet);
+        inQueue.put(packet);
 
         newPacket();
       } else {
@@ -86,77 +87,54 @@ void Protocol::onByteReceived() {
   }
 }
 
-Mail<packet_t, IN_QUEUE_SIZE> & Protocol::getInMailbox() {
-  return inMailbox;
+Queue<packet_t, IN_QUEUE_SIZE> & Protocol::getInQueue() {
+  return inQueue;
 }
 
-Mail<packet_t, OUT_QUEUE_SIZE> & Protocol::getOutMailbox() {
-  return outMailbox;
+Queue<packet_t, OUT_QUEUE_SIZE> & Protocol::getOutQueue() {
+  return outQueue;
 }
-
-//void Protocol::sendPacket() {
-  // if (packetQueue.size() <= 0) return;
-  // help.printf("q:%d\r\n", packetQueue.size());
-  
-  // Packet * packet = packetQueue.front();
-  
-  // uint8_t s_crc = 0; 
-  // s_crc = CRC8_TAB[s_crc ^ packet->getPeerAddr()];
-  // s_crc = CRC8_TAB[s_crc ^ addr];
-
-  // // send "header"
-  // serial.putc(START_BYTE);
-  // serial.putc(packet->getPeerAddr()); 
-  // serial.putc(addr); 
-  // serial.putc(packet->getData().size());
-      
-  // // send data and compute crc
-  // for (unsigned int i = 0; i < packet->getData().size(); i++) {
-  //   s_crc = CRC8_TAB[s_crc ^ packet->getData()[i]];
-  //   serial.putc(packet->getData()[i]);
-  // }
-    
-  // // send crc
-  // serial.putc(s_crc);
-
-  // // start ACK timeout
-  // ackTimeout.attach(callback(this, &Protocol::sendPacket), ACK_TIMEOUT);
-//}
 
 void Protocol::senderTh() {
-  osEvent evt = outMailbox.get();
-  if (evt.status == osEventMail) {
-    packet_t *packet = (packet_t*)evt.value.p;
-    
-    uint8_t s_crc = 0; 
+  while(true) {
+    help.printf("sender running\r\n");
+    osEvent evt = outQueue.get();
+    if (evt.status == osEventMessage) {
+      packet_t *packet = (packet_t*)evt.value.p;
+      
+      uint8_t s_crc = 0; 
 
-    // compute crc of addresses
-    s_crc = CRC8_TAB[s_crc ^ packet->peerAddr];
-    s_crc = CRC8_TAB[s_crc ^ myAddr];
+      // compute crc of addresses
+      s_crc = CRC8_TAB[s_crc ^ packet->peerAddr];
+      s_crc = CRC8_TAB[s_crc ^ myAddr];
 
-    // send header
-    serial.putc(START_BYTE);
-    serial.putc(packet->peerAddr); 
-    serial.putc(myAddr); 
-    serial.putc(packet->dataLength);
-    
-    // send data and compute crc
-    for (int i = 0; i < packet->dataLength; i++) {
-      s_crc = CRC8_TAB[s_crc ^ packet->data[i]];
-      serial.putc(packet->data[i]);
+      // send header
+      serial.putc(START_BYTE);
+      serial.putc(packet->peerAddr); 
+      serial.putc(myAddr); 
+      serial.putc(packet->dataLength);
+      
+      // send data and compute crc
+      for (int i = 0; i < packet->dataLength; i++) {
+        s_crc = CRC8_TAB[s_crc ^ packet->data[i]];
+        serial.putc(packet->data[i]);
+      }
+
+      help.printf("printed\r\n");
+
+      // send crc
+      serial.putc(s_crc);
+
+      // wait for ack event
+      uint32_t flag = event.wait_all(EVENT_ACK, ACK_TIMEOUT);
+      if (flag == osFlagsError) {
+        help.printf("error\r\n");
+      } else {
+        help.printf("flag ok\r\n");
+      }
+
+      delete [] packet->data;
+      delete packet;
     }
-
-    // send crc
-    serial.putc(s_crc);
-
-    // wait for ack event
-    uint32_t flag = event.wait_all(EVENT_ACK, ACK_TIMEOUT);
-    if (flag == osFlagsError) {
-      help.printf("error\r\n");
-    } else {
-      help.printf("flag ok\r\n");
-    }
-
-    outMailbox.free(packet);
   }
 }
