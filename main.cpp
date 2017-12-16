@@ -1,5 +1,6 @@
 #include "mbed.h"
 #include "protocol.h"
+#include "display.h"
 
 #define BAUDRATE    57600
 #define MY_ADDR     0x00
@@ -12,14 +13,21 @@ Protocol protocol(pc, MY_ADDR);
 
 int main()
 {
-    help.printf("debuging works\r\n");
+  help.printf("debuging works\r\n");
 
-    protocol.start();
+  protocol.start();
     
-    char ch = 'a';
+  char ch = 'a';
     
-    while (true) {
-
+  Display display(0x30, &protocol);  
+    
+  while (true) {
+    display.setDirectionUp(2);
+    wait(1.0f);
+    display.setDirectionDown(3);
+    wait(1.0f);
+    display.setDirectionNone(0);
+    wait(1.0f);
 //        help.printf("waiting...\r\n");
 //        osEvent evt = protocol.getInMailbox().get();
 //        if (evt.status == osEventMail) {
@@ -27,23 +35,6 @@ int main()
 //            help.printf("packet\r\n");
 //            protocol.getInMailbox().free(packet);
 //        }
-        wait(0.8f);
-
-        protocol.getOutMailbox();
-        packet_t *packet = protocol.getOutMailbox().alloc();
-        packet->peerAddr = 0xD0;
-        packet->data[0] = ch;
-        packet->data[1] = '\n';
-
-        packet->dataLength = 2;
-
-        protocol.getOutMailbox().put(packet);
-        
-        if (ch < 'z') {
-            ch++;    
-        } else {
-            ch = 'a';
-        }
-    }
+  }
 }
 
