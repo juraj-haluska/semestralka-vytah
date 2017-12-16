@@ -1,6 +1,7 @@
 #include "mbed.h"
 #include "protocol.h"
 #include "display.h"
+#include "ledpanel.h"
 
 #define BAUDRATE    57600
 #define MY_ADDR     0x00
@@ -17,17 +18,18 @@ int main()
 
   protocol.start();
     
-  char ch = 'a';
-    
   Display display(0x30, &protocol);  
+  LedPanel panel1(0x20, &protocol);
+    
+  int led = 0;
     
   while (true) {
-    display.setDirectionUp(2);
-    wait(1.0f);
-    display.setDirectionDown(3);
-    wait(1.0f);
-    display.setDirectionNone(0);
-    wait(1.0f);
+    panel1.setLed(led);
+    wait(0.5f);
+    panel1.unsetLed(led++);
+    wait(0.5f);
+    if (led > 5) led = 0;
+    
 //        help.printf("waiting...\r\n");
 //        osEvent evt = protocol.getInMailbox().get();
 //        if (evt.status == osEventMail) {
