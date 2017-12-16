@@ -6,14 +6,6 @@
 
 Serial help(PTC4, PTC3, 115200);
 
-// void onPacketReceived(Packet * packet) {
-//     help.printf("packet received from %x:\r\n", packet->getPeerAddr());
-//     for (int i = 0; i < packet->getData().size(); i++) {
-//         help.printf("\t%x\r\n", packet->getData()[i]);
-//     }
-//     delete packet;
-// }
-
 DigitalOut myled(LED_GREEN);
 Serial pc(USBTX, USBRX, BAUDRATE);
 Protocol protocol(pc, MY_ADDR);
@@ -22,8 +14,8 @@ int main()
 {
     help.printf("debuging works\r\n");
 
-    //unsigned char data [] = {0x41,0x42, 0x43, '\n'};
-
+    protocol.start();
+    
     while (true) {
 
         help.printf("waiting...\r\n");

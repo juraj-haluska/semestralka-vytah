@@ -12,13 +12,13 @@
 #define PACKET_TA_POS   3
 #define PACKET_DL_POS   4
 
-#define MAX_DATA_LENGTH 100
+#define MAX_DATA_LENGTH 256
 #define ZERO 0x00
 
 #define ACK_TIMEOUT     0.1
 
-#define IN_QUEUE_SIZE   1
-#define OUT_QUEUE_SIZE  1
+#define IN_QUEUE_SIZE   2
+#define OUT_QUEUE_SIZE  4
 
 #define EVENT_ACK       0x01
 
@@ -73,6 +73,7 @@ public:
   Protocol(Serial& _serial, uint8_t _myAddr);
   Mail<packet_t, IN_QUEUE_SIZE> &getInMailbox();
   Mail<packet_t, OUT_QUEUE_SIZE> &getOutMailbox();
+  void start();
 };
 
 #endif /* PROTOCOL_H_ */
