@@ -10,8 +10,11 @@
 #define PACKET_TA_POS   3
 #define PACKET_DL_POS   4
 
-#define MAX_DATA_LENGTH 256
+#define MAX_DATA_LENGTH 20
+#define PACKET_DATA_LEN 10
 #define ZERO 0x00
+
+#define RECEIVE_SLOTS   16
 
 #define ACK_TIMEOUT     250     // miliseconds
 
@@ -56,7 +59,10 @@ private:
   uint8_t dataLength;
   uint8_t recvBuffer[MAX_DATA_LENGTH];
   uint8_t crc;
-  
+
+  Mail<packet_t, RECEIVE_SLOTS> recvMailbox;
+  MemoryPool<uint8_t[PACKET_DATA_LEN], RECEIVE_SLOTS> dataPool;
+
   // private functions
   void newPacket();
   void onByteReceived();
@@ -64,6 +70,8 @@ public:
   Protocol(Serial& _serial, uint8_t _myAddr);
   // synchronnna funkcia
   void sendPacket(packet_t * packet);
+  Mail<packet_t, RECEIVE_SLOTS> & getPacketMailbox();
+  MemoryPool<uint8_t [PACKET_DATA_LEN], RECEIVE_SLOTS> & getDataPool();
 };
 
 #endif /* PROTOCOL_H_ */

@@ -3,10 +3,10 @@
 
 void Engine::move(int32_t speed) {
   dataBuffer[0] = CMD_MOVE;
-  dataBuffer[1] = (uint8_t) *((uint8_t *) (&speed + 0));
-  dataBuffer[2] = (uint8_t) *((uint8_t *) (&speed + 1));
-  dataBuffer[3] = (uint8_t) *((uint8_t *) (&speed + 2));
-  dataBuffer[4] = (uint8_t) *((uint8_t *) (&speed + 3));
+  dataBuffer[1] = *(((uint8_t *) &speed) + 0);
+  dataBuffer[2] = *(((uint8_t *) &speed) + 1);
+  dataBuffer[3] = *(((uint8_t *) &speed) + 2);
+  dataBuffer[4] = *(((uint8_t *) &speed) + 3);
   packet.dataLength = 5;
   (*protocol).sendPacket(&packet);  
 }

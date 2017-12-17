@@ -10,6 +10,14 @@ myAddr(_myAddr) {
   serial.attach(callback(this, &Protocol::onByteReceived), Serial::RxIrq);
 };
 
+Mail<packet_t, RECEIVE_SLOTS> & Protocol::getPacketMailbox() {
+  return recvMailbox;
+}
+
+MemoryPool<uint8_t [PACKET_DATA_LEN], RECEIVE_SLOTS> & Protocol::getDataPool() {
+  return dataPool;
+}
+
 void Protocol::newPacket() {
   crc = 0;
   for (int i = 0; i < MAX_DATA_LENGTH; i++) {
@@ -25,7 +33,13 @@ void Protocol::onByteReceived() {
   }
   
   // add received byte to buffer
-  recvBuffer[dataLength++] = serial.getc();
+  // including last crc byte
+  if (dataLength <= MAX_DATA_LENGTH) {
+    recvBuffer[dataLength++] = serial.getc();
+  } else {
+    // error
+    newPacket();
+  }
 
   // check if ACK was received
   if (dataLength == sizeof(ACK)) {
@@ -66,9 +80,20 @@ void Protocol::onByteReceived() {
     if (actualDataLength >= (expectedDataLength + 1)) {
       // check crc
       if (crc == recvBuffer[dataLength - 1]) {
-        // allocate new packet, copy data and add to queue
+        // allocate new packet, copy data and add to mailbox
+        packet_t *packet = recvMailbox.alloc();
+        uint8_t *data = (uint8_t *) dataPool.alloc();
 
-        /// vyparsuj data priamo tu a ho do niakej queue event flag
+        packet->peerAddr = recvBuffer[PACKET_TA_POS - 1];
+        packet->data = data;
+        packet->dataLength = expectedDataLength;
+        packet->dynamic = true;
+        
+        for (int i = 0; i < expectedDataLength; i++) {
+          packet->data[i] = recvBuffer[PACKET_DL_POS + i];
+        }
+
+        recvMailbox.put(packet);
 
         newPacket();
       } else {
@@ -109,8 +134,4 @@ void Protocol::sendPacket(packet_t * packet) {
   }
   
   // packet successfuly sent
-  if (packet->dynamic) {
-    delete [] packet->data;
-    delete packet;    
-  }
 }
