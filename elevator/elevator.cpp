@@ -84,7 +84,9 @@ void Elevator::checkProximity(packet_t *packet) {
   }
 }
 
+// execution loop of elevator controller
 void Elevator::execute() {
+  cabin->checkFreeFall();
   switch (state) {
     case STATE_IDLE: idle(); break;
     case STATE_START: start(); break;

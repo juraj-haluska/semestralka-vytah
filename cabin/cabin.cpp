@@ -24,3 +24,15 @@ void Cabin::deactivateBreak() {
   dataBuffer[0] = BREAK_UNLOCK;
   (*protocol).sendPacket(&packet);  
 }
+
+// interrupt routine
+void Cabin::freeFallHandler() {
+  freeFallDetected = true;
+}
+
+void Cabin::checkFreeFall() {
+  if (freeFallDetected) {
+    freeFallDetected = false;
+    activateBreak();
+  }
+}
