@@ -56,9 +56,9 @@ extern Serial help;
 /* elevator states */
 #define STATE_IDLE    0x00
 #define STATE_START   0x01
-#define STATE_MOVE    0x02
-#define STATE_BREAK1  0x03
-#define STATE_BREAK2  0x04
+#define STATE_FULLSPD 0x02
+#define STATE_HALFSPD 0x03
+#define STATE_SLOWSPD 0x04
 #define STATE_STOP    0x05     
 #define STATE_BOARD   0x06
 
@@ -66,6 +66,10 @@ extern Serial help;
 #define SPEED_FULL    100
 #define SPEED_HALF    50
 #define SPEED_SLOW    25
+
+/* time constants  in ms */
+#define BOARD_DELAY   1500
+#define STOP_DELAY    1000
 
 class Elevator {
 private:
@@ -80,17 +84,28 @@ private:
   // state informations
   int state;
   int requestedFloor;
-  int boardingDelay;
   int way;
+
+  // timer for tasks
+  Timer timer;
 
   // private functions
   void idle();
   void start();
-  void move();
-  void break1();
-  void break2();
+  void fullSpd();
+  void halfSpd();
+  void slowSpd();
   void stop();
   void board();
+
+  // transient functions between states
+  void toIdle();
+  void toStart();
+  void toFullSpd();
+  void toHalfSpd();
+  void toSlowSpd();
+  void toStop();
+  void toBoard();
 public:
   Elevator(Display *_display,
     LedPanel *_ledPanelA,
