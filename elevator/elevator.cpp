@@ -74,6 +74,14 @@ void Elevator::checkProximity(packet_t *packet) {
     proxy.addr = PROXY_4;
     proxy.proxy = packet->data[0];
   }
+
+  if (state == STATE_FULLSPD || state == STATE_HALFSPD || state == STATE_SLOWSPD) {
+    if (way < 0) {
+      display->setDirectionDown(proxy.addr & 0x0F);
+    } else {
+      display->setDirectionUp(proxy.addr & 0x0F);
+    }
+  }
 }
 
 void Elevator::execute() {
@@ -225,6 +233,7 @@ void Elevator::toStop() {
 void Elevator::toBoard() {
   ledPanelA->unsetLed(requestedFloor);
   ledPanelB->unsetLed(requestedFloor);
+  display->setDirectionNone(requestedFloor);
   cabin->unlock();
   state = STATE_BOARD;
   timer.reset();

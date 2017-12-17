@@ -2,6 +2,11 @@
 
 // if queue is full overwrite the oldest element
 void FloorQueue::push(int floor) {
+  // check if floor is in queue already
+  for (int i = 0; i <= front; i++) {
+    if (floor == buffer[front]) return;
+  }
+
   // check if queue is full
   if (front == (CAPACITY - 1)) {
     // "remove last element"
