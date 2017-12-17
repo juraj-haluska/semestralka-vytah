@@ -81,19 +81,19 @@ void Protocol::onByteReceived() {
       // check crc
       if (crc == recvBuffer[dataLength - 1]) {
         // allocate new packet, copy data and add to mailbox
-        packet_t *packet = recvMailbox.alloc();
-        uint8_t *data = (uint8_t *) dataPool.alloc();
+        // packet_t *packet = recvMailbox.alloc();
+        // uint8_t *data = (uint8_t *) dataPool.alloc();
 
-        packet->peerAddr = recvBuffer[PACKET_TA_POS - 1];
-        packet->data = data;
-        packet->dataLength = expectedDataLength;
-        packet->dynamic = true;
+        // packet->peerAddr = recvBuffer[PACKET_TA_POS - 1];
+        // packet->data = data;
+        // packet->dataLength = expectedDataLength;
+        // packet->dynamic = true;
         
-        for (int i = 0; i < expectedDataLength; i++) {
-          packet->data[i] = recvBuffer[PACKET_DL_POS + i];
-        }
+        // for (int i = 0; i < expectedDataLength; i++) {
+        //   packet->data[i] = recvBuffer[PACKET_DL_POS + i];
+        // }
 
-        recvMailbox.put(packet);
+        // recvMailbox.put(packet);
 
         newPacket();
       } else {

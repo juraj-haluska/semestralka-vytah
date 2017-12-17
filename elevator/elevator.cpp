@@ -33,3 +33,25 @@ void Elevator::checkButtons(packet_t * packet) {
 int Elevator::getNext() {
   return floorQueue.pop();
 }
+
+void Elevator:execute() {
+  switch (state) {
+    case STATE_IDLE: idle(); break;
+    case STATE_MOVING: moving(); break;
+    case STATE_BOARD: boarding(); break;
+  }
+}
+
+void Elevator:idle() {
+  static lastTime 
+  // make sure elevator is not moving
+  engine.stop();
+}
+
+void Elevator:moving() {
+
+}
+
+void Elevator:boarding() {
+
+}

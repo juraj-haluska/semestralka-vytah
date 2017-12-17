@@ -10,8 +10,8 @@
 #define PACKET_TA_POS   3
 #define PACKET_DL_POS   4
 
-#define MAX_DATA_LENGTH 20
-#define PACKET_DATA_LEN 10
+#define MAX_DATA_LENGTH 24
+#define PACKET_DATA_LEN 16
 #define ZERO 0x00
 
 #define RECEIVE_SLOTS   16

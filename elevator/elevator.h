@@ -45,6 +45,11 @@ extern Serial help;
 /* data */
 #define D_BTN_PRESS   0xFF
 
+/* L1 STATES */
+#define STATE_IDLE    0x00
+#define STATE_MOVING  0x01
+#define STATE_BOARD   0x02
+
 class Elevator {
 private:
   Display *display;  
@@ -53,6 +58,14 @@ private:
   Cabin *cabin;
   Engine *engine;
   FloorQueue floorQueue;
+  
+  // state informations
+  int state;
+
+  // private functions
+  void idle();
+  void moving();
+  void boarding();
 public:
   Elevator(Display *_display,
     LedPanel *_ledPanelA,
@@ -64,11 +77,13 @@ public:
     ledPanelB(_ledPanelB),
     cabin(_cabin),
     engine(_engine) {
+      state = STATE_IDLE;
   };
 
   // functions
   void checkButtons(packet_t * packet);
   int getNext();
+  void execute();
 };
 
 #endif /* _ELEVATOR_H */

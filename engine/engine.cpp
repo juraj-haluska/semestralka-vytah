@@ -22,3 +22,14 @@ void Engine::requestEncoderCount() {
   packet.dataLength = 1;
   (*protocol).sendPacket(&packet); 
 }
+
+double Engine::getLastEncoderCount() {
+  return encoderCount;
+}
+
+void Engine::handlePacket(packet_t *packet) {
+  if (packet->peerAddr != myAddr) return;
+  if (packet->data[0] == CMD_REQUEST && packet->dataLength >= 9) {
+    encoderCount = *((double *) (&(packet->data[1])));
+  }
+}
