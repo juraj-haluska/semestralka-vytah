@@ -3,22 +3,22 @@
 
 void Engine::move(int32_t speed) {
   dataBuffer[0] = CMD_MOVE;
-  dataBuffer[1] = (uint8_t) (0xFF & (speed >> 8 * 3));
-  dataBuffer[2] = (uint8_t) (0xFF & (speed >> 8 * 2));
-  dataBuffer[3] = (uint8_t) (0xFF & (speed >> 8 * 1));
-  dataBuffer[4] = (uint8_t) (0xFF & speed);
+  dataBuffer[1] = (uint8_t) *((uint8_t *) (&speed + 0));
+  dataBuffer[2] = (uint8_t) *((uint8_t *) (&speed + 1));
+  dataBuffer[3] = (uint8_t) *((uint8_t *) (&speed + 2));
+  dataBuffer[4] = (uint8_t) *((uint8_t *) (&speed + 3));
   packet.dataLength = 5;
-  (*protocol).getOutQueue().put(&packet);   
+  (*protocol).sendPacket(&packet);  
 }
 
 void Engine::stop() {
   dataBuffer[0] = CMD_STOP;
   packet.dataLength = 1;
-  (*protocol).getOutQueue().put(&packet);    
+  (*protocol).sendPacket(&packet);  
 }
 
 void Engine::requestEncoderCount() {  
   dataBuffer[0] = CMD_REQUEST;
   packet.dataLength = 1;
-  (*protocol).getOutQueue().put(&packet);    
+  (*protocol).sendPacket(&packet); 
 }

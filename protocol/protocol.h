@@ -15,9 +15,6 @@
 
 #define ACK_TIMEOUT     250     // miliseconds
 
-#define IN_QUEUE_SIZE   2
-#define OUT_QUEUE_SIZE  32
-
 #define EVENT_ACK       0x01
 
 const uint8_t ACK[] = {
@@ -59,20 +56,14 @@ private:
   uint8_t dataLength;
   uint8_t recvBuffer[MAX_DATA_LENGTH];
   uint8_t crc;
-
-  // packet mailboxes
-  Mail<packet_t, IN_QUEUE_SIZE> inMailbox;
-  Queue<packet_t, OUT_QUEUE_SIZE> outQueue;
   
   // private functions
-  void senderTh();
   void newPacket();
   void onByteReceived();
 public:
   Protocol(Serial& _serial, uint8_t _myAddr);
-  Mail<packet_t, IN_QUEUE_SIZE> &getInMailbox();
-  Queue<packet_t, OUT_QUEUE_SIZE> &getOutQueue();
-  void start();
+  // synchronnna funkcia
+  void sendPacket(packet_t * packet);
 };
 
 #endif /* PROTOCOL_H_ */
