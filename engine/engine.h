@@ -15,6 +15,7 @@ private:
   uint8_t dataBuffer[maxDataLength];
   packet_t packet;
   double encoderCount;
+  bool encoderCountValid;
 public:
   Engine(uint8_t _myAddr, Protocol *_protocol): myAddr(_myAddr), protocol(_protocol) {
     packet.peerAddr = myAddr;
@@ -25,6 +26,7 @@ public:
   void move(int32_t speed);
   void requestEncoderCount();
   double getLastEncoderCount();
+  bool isEncoderCountValid();
   void handlePacket(packet_t *packet);
 };
 

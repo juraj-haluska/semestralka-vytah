@@ -35,32 +35,13 @@ int main()
         packet_t *packet = (packet_t*) evt.value.p;
         // actualize data in objects
         elevator.checkButtons(packet);
+        elevator.checkProximity(packet);
         engine.handlePacket(packet);
 
         protocol.getDataPool().free((uint8_t (*)[PACKET_DATA_LEN])packet->data);
         protocol.getPacketMailbox().free(packet);
     }
-    //wait(0.2);
-    int floor = elevator.getNext();
-    if (floor > -1) {
-      help.printf("going to floor:%d\r\n", floor);
-    }
 
-    help.printf("count %f:\r\n", engine.getLastEncoderCount());
-    
-    cabin.lock();
-    engine.move(-100);
-    wait(2);
-    engine.stop();
-    wait(2);
-    cabin.unlock();
-    wait(1);
-    cabin.lock();
-    engine.move(+100);
-    wait(2);
-    engine.stop();
-    wait(2);
-    cabin.unlock();
-    wait(1);
+    elevator.execute();
   }
 }

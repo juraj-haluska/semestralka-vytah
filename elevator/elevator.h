@@ -6,6 +6,7 @@
 #include "ledpanel.h"
 #include "cabin.h"
 #include "engine.h"
+#include "proxyswitch.h"
 
 #include "floorqueue.h"
 
@@ -24,6 +25,13 @@ extern Serial help;
 #define LED_2   0x02
 #define LED_3   0x03
 #define LED_4   0x04
+
+/* proximity switches */
+#define PROXY_P 0xE0
+#define PROXY_1 0xE1
+#define PROXY_2 0xE2
+#define PROXY_3 0xE3
+#define PROXY_4 0xE4
 
 /* floors */
 #define FLOOR_P 0x00
@@ -45,10 +53,14 @@ extern Serial help;
 /* data */
 #define D_BTN_PRESS   0xFF
 
-/* L1 STATES */
+/* elevator states */
 #define STATE_IDLE    0x00
-#define STATE_MOVING  0x01
-#define STATE_BOARD   0x02
+#define STATE_START   0x01
+#define STATE_MOVE    0x02
+#define STATE_BREAK1  0x03
+#define STATE_BREAK2  0x04
+#define STATE_STOP    0x05     
+#define STATE_BOARD   0x06
 
 class Elevator {
 private:
@@ -57,15 +69,22 @@ private:
   LedPanel *ledPanelB;
   Cabin *cabin;
   Engine *engine;
+  proxyswitch_t proxy;
   FloorQueue floorQueue;
   
   // state informations
   int state;
+  int requestedFloor;
+  int boardingDelay;
 
   // private functions
   void idle();
-  void moving();
-  void boarding();
+  void start();
+  void move();
+  void break1();
+  void break2();
+  void stop();
+  void board();
 public:
   Elevator(Display *_display,
     LedPanel *_ledPanelA,
@@ -81,8 +100,8 @@ public:
   };
 
   // functions
-  void checkButtons(packet_t * packet);
-  int getNext();
+  void checkButtons(packet_t *packet);
+  void checkProximity(packet_t *packet);
   void execute();
 };
 

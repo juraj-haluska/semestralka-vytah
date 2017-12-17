@@ -27,9 +27,15 @@ double Engine::getLastEncoderCount() {
   return encoderCount;
 }
 
+bool Engine::isEncoderCountValid() {
+  return encoderCountValid;
+}
+
 void Engine::handlePacket(packet_t *packet) {
-  if (packet->peerAddr != myAddr) return;
-  if (packet->data[0] == CMD_REQUEST && packet->dataLength >= 9) {
-    encoderCount = *((double *) (&(packet->data[1])));
+  if (packet->peerAddr != myAddr) {
+    encoderCountValid = false;
+    return;
   }
+  encoderCountValid = true;
+  encoderCount = *((double *) packet->data);
 }
