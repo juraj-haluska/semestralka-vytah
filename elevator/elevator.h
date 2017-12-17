@@ -62,6 +62,11 @@ extern Serial help;
 #define STATE_STOP    0x05     
 #define STATE_BOARD   0x06
 
+/* used motor speed levels by controller */
+#define SPEED_FULL    100
+#define SPEED_HALF    50
+#define SPEED_SLOW    25
+
 class Elevator {
 private:
   Display *display;  
@@ -76,6 +81,7 @@ private:
   int state;
   int requestedFloor;
   int boardingDelay;
+  int way;
 
   // private functions
   void idle();

@@ -105,84 +105,97 @@ void Elevator::start() {
     engine->requestEncoderCount();
     return;
   }
-  double actual = engine->getLastEncoderCount();
-  double desired = (4 - requestedFloor) * -250.0f;
+  // actual position of cabin
+  int actual = (int) engine->getLastEncoderCount();
+  // desired position of cabin
+  int desired = (int) ((4 - requestedFloor) * -250.0f);
 
+  // decide which way to go
+  way = 1;
+  if (desired < actual) {
+    way *= -1;
+  }
+
+  // close cabin
+  cabin->lock();
+
+  // proximity check first
   // check if cabin is in proximty of some floor
   if (proxy.proxy == PROXY_NARROW || proxy.proxy == PROXY_WIDE) {
     // check distance from desired floor
-    int distance = desiredFloor - (proxy.addr & 0x0F);
+    int distance = requestedFloor - (proxy.addr & 0x0F);
     if (abs(distance) > 1) {
-      state = STATE_MOVING;
+      state = STATE_MOVE;
+      engine->move(way * SPEED_FULL);
+      help.printf("start->move\r\n");
     } else if (abs(distance) == 1) {
       state = STATE_BREAK1;
+      engine->move(way * SPEED_HALF);
+      help.printf("start->break1\r\n");
     } else {
       // current floor
       if (proxy.proxy == PROXY_NARROW) {
         state = STATE_BOARD;
+        help.printf("start->board\r\n");
       } else {
         state = STATE_BREAK2;
+        engine->move(way * SPEED_SLOW);
+        help.printf("start->break2\r\n");
       }
     }
   } else {
-
+    // cabin is not in proximity
+    if (abs(desired - actual) >= 250) {
+      state = STATE_MOVE;
+      engine->move(way * SPEED_FULL);
+      help.printf("start->move\r\n");
+    } else {
+      state = STATE_BREAK1;
+      engine->move(way * SPEED_HALF); 
+      help.printf("start->break1\r\n"); 
+    }
   }
 }
 
 void Elevator::move() {
-  switch (movingState) {
-    case MOVING_STATE_START: {
-      cabin->lock();
-      help.printf("requested floor:%d\r\n", requestedFloor);
-      // get current position
-
-      // start up/down according to the current position
-      if (!engine->isEncoderCountValid()) {
-        engine->requestEncoderCount();
-        return;
-      }
-
-      double actual = engine->getLastEncoderCount();
-      // normalise requested position to range 0 -> -1000
-      double desired = (4 - requestedFloor) * -250.0f;
-      help.printf("actual:%f\t desired:%f\r\n", actual, desired);
-      if (desired < actual) {
-        engine->move(-100);
-      } else {
-        engine->move(100);   
-      }
-
-      // switch state to 
-      movingState = MOVING_STATE_LOOP;
-    } break;
-
-    case MOVING_STATE_LOOP: {
-      if (((proxy.addr & 0x0F) == (requestedFloor & 0x0F)) && (proxy.proxy == PROXY_WIDE)) {
-        movingState = MOVING_STATE_STOP;
-        help.printf("moving->stopping\r\n");
-      }
-    } break;
-
-    case MOVING_STATE_STOP: {
-      engine->stop();
-      state = STATE_BOARD;
-      boardingDelay = 0;
-    } break;
+  if (proxy.proxy == PROXY_NARROW) {
+    int distance = requestedFloor - (proxy.addr & 0x0F);
+    if (distance <= 1) {
+      state = STATE_BREAK1;
+      engine->move(way * SPEED_HALF);
+      help.printf("move->break1\r\n");
+    }
   }
 }
 
-void Elevator::boarding() {
+void Elevator::break1() {
+  if (((proxy.addr & 0x0F ) == requestedFloor) && (proxy.proxy == PROXY_WIDE)) {
+    state = STATE_BREAK2;
+    engine->move(way * SPEED_SLOW);
+    help.printf("break1->break2\r\n");
+  }
+}
+
+void Elevator::break2() {
+  if (((proxy.addr & 0x0F ) == requestedFloor) && (proxy.proxy == PROXY_NARROW)) {
+    state = STATE_STOP;
+    engine->stop();
+    help.printf("break2->stop\r\n");
+  }
+}
+
+void Elevator::stop() {
+  state = STATE_BOARD;
+  boardingDelay = 0;
+  help.printf("stop->board\r\n");
+}
+
+void Elevator::board() {
   if (boardingDelay == 0) {
     cabin->unlock();
   }
-  if (boardingDelay++ > 200) {
+  if (boardingDelay++ > 400) {
     state = STATE_IDLE;
+    help.printf("board->idle\r\n");
   }
 }
-
-void start();
-void move();
-void break1();
-void break2();
-void stop();
-void board();
