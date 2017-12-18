@@ -7,6 +7,7 @@
 #include "cabin.h"
 #include "engine.h"
 #include "proxyswitch.h"
+#include "watchdog.h"
 
 #include "floorqueue.h"
 
@@ -49,6 +50,7 @@ extern Serial help;
 #define CABIN         0xF0
 #define EMERGENCY     0x0F
 #define MOTOR         0xF1
+#define WATCHDOG      0XFE
 
 /* data */
 #define D_BTN_PRESS   0xFF
@@ -67,9 +69,9 @@ extern Serial help;
 #define SPEED_HALF    50
 #define SPEED_SLOW    25
 
-/* time constants  in ms */
+/* time constants in ms */
 #define BOARD_DELAY   1500
-#define STOP_DELAY    1000
+#define STOP_DELAY    1000 
 
 class Elevator {
 private:
@@ -80,6 +82,7 @@ private:
   Engine *engine;
   proxyswitch_t proxy;
   FloorQueue floorQueue;
+  Watchdog *watchdog;
   
   // state informations
   int state;
@@ -89,7 +92,7 @@ private:
   // timer for tasks
   Timer timer;
 
-  // private functions
+  // private state machine functions
   void idle();
   void start();
   void fullSpd();
@@ -111,12 +114,14 @@ public:
     LedPanel *_ledPanelA,
     LedPanel *_ledPanelB,
     Cabin *_cabin,
-    Engine *_engine
+    Engine *_engine,
+    Watchdog *_watchdog
   ): display(_display),
     ledPanelA(_ledPanelA),
     ledPanelB(_ledPanelB),
     cabin(_cabin),
-    engine(_engine) {
+    engine(_engine),
+    watchdog(_watchdog) {
       state = STATE_IDLE;
   };
 

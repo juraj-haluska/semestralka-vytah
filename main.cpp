@@ -5,6 +5,7 @@
 #include "cabin.h"
 #include "engine.h"
 #include "elevator.h"
+#include "watchdog.h"
 #include <MMA8451Q.h>
 
 #define MMA8451_I2C_ADDRESS (0x1D << 1)
@@ -25,10 +26,11 @@ InterruptIn freeFall(PTA15);
 Display display(DISPLAY, &protocol);  
 LedPanel ledPanelA(LED_PANEL_A, &protocol);
 LedPanel ledPanelB(LED_PANEL_B, &protocol);
-Cabin cabin(0xF0, 0x0F, &protocol, &freeFall);
-Engine engine(0xF1, &protocol);
+Cabin cabin(CABIN, EMERGENCY, &protocol, &freeFall);
+Engine engine(MOTOR, &protocol);
+Watchdog watchdog(WATCHDOG, &protocol);
 
-Elevator elevator(&display, &ledPanelA, &ledPanelB, &cabin, &engine);
+Elevator elevator(&display, &ledPanelA, &ledPanelB, &cabin, &engine, &watchdog);
 
 int main()
 {
