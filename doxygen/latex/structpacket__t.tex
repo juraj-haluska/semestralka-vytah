@@ -1,0 +1,57 @@
+\hypertarget{structpacket__t}{}\section{packet\+\_\+t Struct Reference}
+\label{structpacket__t}\index{packet\+\_\+t@{packet\+\_\+t}}
+
+
+Packet structure.  
+
+
+
+
+{\ttfamily \#include $<$protocol.\+h$>$}
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+uint8\+\_\+t \hyperlink{structpacket__t_aa448c0839206ebe76c552b9015eac856}{peer\+Addr}
+\item 
+uint8\+\_\+t \hyperlink{structpacket__t_aab546f51a39cf348d2a066dd71a76e93}{data\+Length}
+\item 
+uint8\+\_\+t $\ast$ \hyperlink{structpacket__t_a29363728ac16a6044f9bc20ea5daaa1f}{data}
+\item 
+bool \hyperlink{structpacket__t_a18a6d2e6ecda8601ae28ac4fd22450ac}{dynamic}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Packet structure. 
+
+\subsection{Member Data Documentation}
+\mbox{\Hypertarget{structpacket__t_a29363728ac16a6044f9bc20ea5daaa1f}\label{structpacket__t_a29363728ac16a6044f9bc20ea5daaa1f}} 
+\index{packet\+\_\+t@{packet\+\_\+t}!data@{data}}
+\index{data@{data}!packet\+\_\+t@{packet\+\_\+t}}
+\subsubsection{\texorpdfstring{data}{data}}
+{\footnotesize\ttfamily uint8\+\_\+t$\ast$ packet\+\_\+t\+::data}
+
+actual data \mbox{\Hypertarget{structpacket__t_aab546f51a39cf348d2a066dd71a76e93}\label{structpacket__t_aab546f51a39cf348d2a066dd71a76e93}} 
+\index{packet\+\_\+t@{packet\+\_\+t}!data\+Length@{data\+Length}}
+\index{data\+Length@{data\+Length}!packet\+\_\+t@{packet\+\_\+t}}
+\subsubsection{\texorpdfstring{data\+Length}{dataLength}}
+{\footnotesize\ttfamily uint8\+\_\+t packet\+\_\+t\+::data\+Length}
+
+length of data pointed by data pointer \mbox{\Hypertarget{structpacket__t_a18a6d2e6ecda8601ae28ac4fd22450ac}\label{structpacket__t_a18a6d2e6ecda8601ae28ac4fd22450ac}} 
+\index{packet\+\_\+t@{packet\+\_\+t}!dynamic@{dynamic}}
+\index{dynamic@{dynamic}!packet\+\_\+t@{packet\+\_\+t}}
+\subsubsection{\texorpdfstring{dynamic}{dynamic}}
+{\footnotesize\ttfamily bool packet\+\_\+t\+::dynamic}
+
+states if packet was allocated dynamically \mbox{\Hypertarget{structpacket__t_aa448c0839206ebe76c552b9015eac856}\label{structpacket__t_aa448c0839206ebe76c552b9015eac856}} 
+\index{packet\+\_\+t@{packet\+\_\+t}!peer\+Addr@{peer\+Addr}}
+\index{peer\+Addr@{peer\+Addr}!packet\+\_\+t@{packet\+\_\+t}}
+\subsubsection{\texorpdfstring{peer\+Addr}{peerAddr}}
+{\footnotesize\ttfamily uint8\+\_\+t packet\+\_\+t\+::peer\+Addr}
+
+address of receiver or transmitter depending on the way of packet 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+protocol/protocol.\+h\end{DoxyCompactItemize}
