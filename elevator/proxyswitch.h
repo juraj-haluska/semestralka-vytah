@@ -1,3 +1,12 @@
+/**
+* @file cabin.h
+* @brief This header file declares structure which represents
+* state of proximity switches.
+*
+* @author Juraj Haluska
+*
+*/
+
 #ifndef _PROXYSWITCH_H
 #define _PROXYSWITCH_H
 

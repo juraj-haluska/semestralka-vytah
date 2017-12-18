@@ -1,3 +1,11 @@
+/**
+* @file ledpanel.h
+* @brief This header file contains constants and class for ledPanel.
+*
+* @author Juraj Haluska
+*
+*/
+
 #ifndef _LED_PANEL
 #define _LED_PANEL
 

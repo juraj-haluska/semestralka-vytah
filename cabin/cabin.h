@@ -1,3 +1,11 @@
+/**
+* @file cabin.h
+* @brief This header file contains constants and class for cabin.
+*
+* @author Juraj Haluska
+*
+*/
+
 #ifndef _CABIN_H
 #define _CABIN_H
 

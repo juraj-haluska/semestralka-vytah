@@ -1,3 +1,16 @@
+/**
+* @file elevator.h
+* @brief Constants and declaration of the most important class - Elevator.
+*
+* Content of this header file:
+* - addresses of elevator's elements
+* - declaration of elevator's state machine
+* - declaration of states
+* 
+* @author Juraj Haluska
+*
+*/
+
 #ifndef _ELEVATOR_H
 #define _ELEVATOR_H
 

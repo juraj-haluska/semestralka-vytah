@@ -1,3 +1,12 @@
+/**
+* @file floorqueue.h
+* @brief This header file contains declaration of FloorQueue
+* used by Elevator class.
+*
+* @author Juraj Haluska
+*
+*/
+
 #ifndef _FLOORQUEUE_H
 #define _FLOORQUEUE_H
 

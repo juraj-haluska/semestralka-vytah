@@ -1,3 +1,11 @@
+/**
+* @file display.h
+* @brief This header file contains constants and class for display panel.
+*
+* @author Juraj Haluska
+*
+*/
+
 #ifndef _DISPLAY_H
 #define _DISPLAY_H
 

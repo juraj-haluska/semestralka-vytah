@@ -1,3 +1,11 @@
+/**
+* @file cabin.h
+* @brief This header file is declares communication protocol.
+*
+* @author Juraj Haluska
+*
+*/
+
 #ifndef PROTOCOL_H_
 #define PROTOCOL_H_
 

@@ -1,3 +1,11 @@
+/**
+* @file cabin.h
+* @brief This header file is declares watchdog subsystem.
+*
+* @author Juraj Haluska
+*
+*/
+
 #ifndef _WATCHDOG_H
 #define _WATCHDOG_H
 

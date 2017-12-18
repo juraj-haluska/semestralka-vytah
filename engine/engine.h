@@ -1,3 +1,11 @@
+/**
+* @file engine.h
+* @brief This header file contains constants and class for engine.
+*
+* @author Juraj Haluska
+*
+*/
+
 #ifndef _ENGINE_H
 #define _ENGINE_H
 
