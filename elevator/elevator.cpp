@@ -7,7 +7,7 @@ void Elevator::checkButtons(packet_t * packet) {
   if (packet->data[0] != D_BTN_PRESS) return;
   const uint8_t addr = packet->peerAddr;
   
-  // panel A
+  //! panel A
   if (addr == (BTN_PANEL_A | BTN_P)) {
     ledPanelA->setLed(LED_P);
     floorQueue.push(FLOOR_P);
@@ -29,7 +29,7 @@ void Elevator::checkButtons(packet_t * packet) {
     floorQueue.push(FLOOR_4);
   }
 
-  // panel B
+  //! panel B
   if (addr == (BTN_PANEL_B | BTN_P)) {
     ledPanelB->setLed(LED_P);
     floorQueue.push(FLOOR_P);
@@ -84,7 +84,7 @@ void Elevator::checkProximity(packet_t *packet) {
   }
 }
 
-// execution loop of elevator controller
+//! execution loop of elevator controller
 void Elevator::execute() {
   cabin->checkFreeFall();
   watchdog->watchdogCheck();
@@ -101,7 +101,7 @@ void Elevator::execute() {
 
 void Elevator::idle() {
   int floor = floorQueue.pop();
-  // transit to moving state if floor request available
+  //! transit to moving state if floor request available
   if (floor != -1) {
     requestedFloor = floor;
     engine->requestEncoderCount();
@@ -111,29 +111,29 @@ void Elevator::idle() {
 }
 
 void Elevator::start() {
-  // current position from encoder
+  //! current position from encoder
   if (!engine->isEncoderCountValid()) {
     engine->requestEncoderCount();
     return;
   }
-  // actual position of cabin
+  //! actual position of cabin
   int actual = (int) engine->getLastEncoderCount();
-  // desired position of cabin
+  //! desired position of cabin
   int desired = (int) ((4 - requestedFloor) * -250.0f);
 
-  // decide which way to go
+  //! decide which way to go
   way = 1;
   if (desired < actual) {
     way *= -1;
   }
 
-  // close cabin
+  //! close cabin
   cabin->lock();
 
-  // proximity check first
-  // check if cabin is in proximty of some floor
+  //! proximity check first
+  //! check if cabin is in proximty of some floor
   if (proxy.proxy == PROXY_NARROW || proxy.proxy == PROXY_WIDE) {
-    // check distance from desired floor
+    //! check distance from desired floor
     int distance = requestedFloor - (proxy.addr & 0x0F);
     if (abs(distance) > 1) {
       help.printf("start->move\r\n");
@@ -142,7 +142,7 @@ void Elevator::start() {
       help.printf("start->break1\r\n");
       toHalfSpd();
     } else {
-      // current floor
+      //! current floor
       if (proxy.proxy == PROXY_NARROW) {
         help.printf("start->board\r\n");
         toBoard();
@@ -152,7 +152,7 @@ void Elevator::start() {
       }
     }
   } else {
-    // cabin is not in proximity
+    //! cabin is not in proximity
     if (abs(desired - actual) >= 250) {
       help.printf("start->move\r\n");
       toFullSpd();
