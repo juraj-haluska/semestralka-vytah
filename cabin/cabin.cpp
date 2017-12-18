@@ -25,7 +25,6 @@ void Cabin::deactivateBreak() {
   (*protocol).sendPacket(&packet);  
 }
 
-// interrupt routine
 void Cabin::freeFallHandler() {
   freeFallDetected = true;
 }

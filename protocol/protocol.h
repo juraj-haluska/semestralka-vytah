@@ -1,5 +1,4 @@
 /**
-* @file cabin.h
 * @brief This header file is declares communication protocol.
 *
 * @author Juraj Haluska
@@ -11,27 +10,37 @@
 
 #include "mbed.h"
 
+//! packet related constants
 #define START_BYTE      0xA0
-/* positions of fileds in packet counting from 1 */
+#define ZERO 0x00
+
+//! positions of fileds in packet counting from 1
 #define PACKET_SB_POS   1
 #define PACKET_RA_POS   2
 #define PACKET_TA_POS   3
 #define PACKET_DL_POS   4
 
+//! length of packet
 #define MAX_DATA_LENGTH 24
-#define PACKET_DATA_LEN 16
-#define ZERO 0x00
 
+//! length of data field in packet
+#define PACKET_DATA_LEN 16
+
+//! receive buffer capacity
 #define RECEIVE_SLOTS   16
 
-#define ACK_TIMEOUT     250     // miliseconds
+//! ACK timeout in ms
+#define ACK_TIMEOUT     250
 
+//! flag indicating that ACK packet arrived
 #define EVENT_ACK       0x01
 
+//! ACK byte sequence
 const uint8_t ACK[] = {
   START_BYTE, 0x00, 0x00, 0x00, 0x00
 };
 
+//! CRC8 table
 const unsigned char CRC8_TAB[] = {
   0, 94, 188, 226, 97, 63, 221, 131, 194, 156, 126, 32, 163, 253, 31, 65,
   157, 195, 33, 127, 252, 162, 64, 30, 95, 1, 227, 189, 62, 96, 130, 220,
@@ -51,34 +60,61 @@ const unsigned char CRC8_TAB[] = {
   116, 42, 200, 150, 21, 75, 169, 247, 182, 232, 10, 84, 215, 137, 107, 53    
 };
 
+/**
+ *  @brief Packet structure.
+ */  
 typedef struct {
-  uint8_t peerAddr;
-  uint8_t dataLength;
-  uint8_t * data;
-  bool dynamic;
+  uint8_t peerAddr;       /**< address of receiver or transmitter depending on the way of packet */  
+  uint8_t dataLength;     /**< length of data pointed by data pointer */  
+  uint8_t * data;         /**< actual data */  
+  bool dynamic;           /**< states if packet was allocated dynamically */  
 } packet_t;
 
+/**
+ *  @brief Class that implements communication protocol.
+ */  
 class Protocol {
 private:
-  Serial& serial;
-  EventFlags event;
-  uint8_t myAddr;
+  Serial& serial;                  /**< initialised uart */  
+  EventFlags event;                /**< event flag */  
+  uint8_t myAddr;                  /**< my address - sender address */  
 
-  uint8_t dataLength;
-  uint8_t recvBuffer[MAX_DATA_LENGTH];
-  uint8_t crc;
+  uint8_t dataLength;                     /**< iterator for recvBuffer */  
+  uint8_t recvBuffer[MAX_DATA_LENGTH];    /**< buffer for incoming data */
+  uint8_t crc;                            /**< running crc sum */
 
-  Mail<packet_t, RECEIVE_SLOTS> recvMailbox;
-  MemoryPool<uint8_t[PACKET_DATA_LEN], RECEIVE_SLOTS> dataPool;
+  Mail<packet_t, RECEIVE_SLOTS> recvMailbox;                    /**< mailbox for received packets */
+  MemoryPool<uint8_t[PACKET_DATA_LEN], RECEIVE_SLOTS> dataPool; /**< memory pool for allocation data in received packets */
 
-  // private functions
+  //! private functions
   void newPacket();
   void onByteReceived();
 public:
+  //! create protocol
   Protocol(Serial& _serial, uint8_t _myAddr);
-  // synchronnna funkcia
+
+  /**
+   * @brief Send packet 
+   * 
+   * This function is synchronous. It waits until ACK for transmitted
+   * packet is received. 
+   * 
+   * @param   packet which encapsulates all needed info for transfer
+   */
   void sendPacket(packet_t * packet);
+
+  /**
+   * @brief Get mailbox of received packets
+   * 
+   * @return  mailbox
+   */
   Mail<packet_t, RECEIVE_SLOTS> & getPacketMailbox();
+
+   /**
+   * @brief Get memory pool of packet data filed
+   * 
+   * @return  memory pool
+   */
   MemoryPool<uint8_t [PACKET_DATA_LEN], RECEIVE_SLOTS> & getDataPool();
 };
 
